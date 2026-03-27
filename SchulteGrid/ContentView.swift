@@ -7,7 +7,13 @@
 
 import SwiftUI
 
+enum SidebarItem: String, CaseIterable {
+    case game = "Game"
+    case settings = "Settings"
+}
+
 struct ContentView: View {
+    @State private var selectedTab: SidebarItem = .game
     @State private var gridSize = 5
     @State private var numbers: [Int] = []
     @State private var nextTarget = 1
@@ -21,11 +27,31 @@ struct ContentView: View {
     }
     
     var body: some View {
+        NavigationSplitView {
+            List(SidebarItem.allCases, id: \.self, selection: $selectedTab) { item in
+                Label(item.rawValue, systemImage: item == .game ? "gamecontroller" : "gearshape")
+            }
+            .navigationSplitViewColumnWidth(min: 150, ideal: 180, max: 220)
+        } detail: {
+            switch selectedTab {
+            case .game:
+                gameView
+            case .settings:
+                SettingView(gridSize: $gridSize)
+            }
+        }
+        .onChange(of: gridSize) {
+            resetGame()
+        }
+    }
+    
+    var gameView: some View {
         VStack(spacing: 20) {
-            Text("Tap \(nextTarget)").font(.title2)
+            Text("Tap \(nextTarget)")
+                .font(.title2)
             
             Text(String(format: "%.1f s", elapsedTime))
-                .font(.system(size: 32, weight: .bold, design: .monospaced))
+                .font(.system(size: 36, weight: .bold, design: .monospaced))
             
             LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(numbers, id: \.self) { number in
@@ -54,7 +80,6 @@ struct ContentView: View {
         }
         .padding(30)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-//        .background(.ultraThinMaterial)
         .onAppear{ resetGame() }
     }
     
