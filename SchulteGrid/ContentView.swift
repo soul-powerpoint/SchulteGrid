@@ -12,6 +12,9 @@ struct ContentView: View {
     @State private var numbers: [Int] = []
     @State private var nextTarget = 1
     @State private var isFinished = false
+    @State private var startTime: Date? = nil
+    @State private var elapsedTime: TimeInterval = 0
+    @State private var timer: Timer? = nil
     
     var columns: [GridItem] {
         Array(repeating: GridItem(.flexible(), spacing: 4), count: gridSize)
@@ -20,6 +23,9 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 20) {
             Text("Tap \(nextTarget)").font(.title2)
+            
+            Text(String(format: "%.1f s", elapsedTime))
+                .font(.system(size: 32, weight: .bold, design: .monospaced))
             
             LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(numbers, id: \.self) { number in
@@ -47,14 +53,20 @@ struct ContentView: View {
             Button("Reset") { resetGame() }
         }
         .padding(30)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+//        .background(.ultraThinMaterial)
         .onAppear{ resetGame() }
     }
     
     func tapped(_ number: Int) {
         if number == nextTarget {
+            if nextTarget == 1 {
+                startTimer()
+            }
             nextTarget += 1
             if nextTarget > gridSize * gridSize {
                 isFinished = true
+                timer?.invalidate()
             }
         }
     }
@@ -63,6 +75,18 @@ struct ContentView: View {
         numbers = Array(1...gridSize * gridSize).shuffled()
         nextTarget = 1
         isFinished = false
+        timer?.invalidate()
+        startTime = nil
+        elapsedTime = 0
+    }
+    
+    func startTimer() {
+        startTime = Date()
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            if let startTime = startTime {
+                elapsedTime = Date().timeIntervalSince(startTime)
+            }
+        }
     }
 }
 
