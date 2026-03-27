@@ -25,8 +25,16 @@ struct ContentView: View {
                 ForEach(numbers, id: \.self) { number in
                     Button(action: { tapped(number) }) {
                         Text("\(number)")
-                            .frame(width: 50, height: 50)
-                            .backgroundStyle(number < nextTarget ? Color.green.opacity(0.3) : Color.blue.opacity(0.2))
+                            .font(.title2)
+                            .fontWeight(.medium)
+                            .frame(width: 60, height: 60)
+                            .backgroundStyle(number < nextTarget ? Color.green.opacity(0.3) : Color.blue.opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray, lineWidth: 1)
+                            )
+                            .cornerRadius(8)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }
