@@ -12,6 +12,7 @@ struct SchulteGridApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .background(VisualEffectBlur())
         }
     }
 }
