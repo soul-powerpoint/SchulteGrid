@@ -22,34 +22,29 @@ struct ContentView: View {
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer? = nil
     @State private var highlightTapped = true
+    @State private var isDarkMode = false
+    @State private var wrongTap: Int? = nil
     
     var columns: [GridItem] {
         Array(repeating: GridItem(.flexible(), spacing: 4), count: gridSize)
     }
     
     var body: some View {
-        NavigationSplitView {
-            List(SidebarItem.allCases, id: \.self, selection: $selectedTab) { item in
-                Label(item.rawValue, systemImage: item == .game ? "gamecontroller" : "gearshape")
-            }
-            .navigationSplitViewColumnWidth(min: 150, ideal: 180, max: 220)
-        } detail: {
-            switch selectedTab {
-            case .game:
-                gameView
-            case .settings:
-                SettingView(gridSize: $gridSize, highlightTapped: $highlightTapped)
-            }
-        }
-        .onChange(of: gridSize) {
-            resetGame()
+        TabView(selection: $selectedTab) {
+            gameView
+                .tabItem { Label("Game", systemImage: "gamecontroller") }
+                .tag(SidebarItem.game)
+                .preferredColorScheme(isDarkMode ? .dark : .light)
+                
+            SettingView(gridSize: $gridSize, highlightTapped: $highlightTapped, isDarkMode: $isDarkMode)
+                .tabItem { Label("Settings", systemImage: "gearshape") }
+                .tag(SidebarItem.settings)
         }
     }
     
     var gameView: some View {
         VStack(spacing: 20) {
-            Text("Tap \(nextTarget)")
-                .font(.title2)
+            Text(isFinished ? "Done! 🎉" : "Tap \(nextTarget)").font(.title2)
             
             Text(String(format: "%.1f s", elapsedTime))
                 .font(.system(size: 36, weight: .bold, design: .monospaced))
@@ -68,11 +63,15 @@ struct ContentView: View {
                                 .background(
                                     ZStack {
                                         VisualEffectBlur()
-                                        Color.white.opacity(number < nextTarget && highlightTapped ? 0.4 : 0.15)
+                                        VisualEffectBlur()
+                                        Color.white.opacity(0.15)
+                                        Color.green.opacity(number < nextTarget && highlightTapped ? 0.5 : 0)
+                                        Color.red.opacity(wrongTap == number ? 0.6 : 0)
                                     }
-                                    .cornerRadius(6)
+                                        .animation(.linear(duration: 0.15), value: wrongTap)
+                                        .cornerRadius(10)
                                 )
-                                .cornerRadius(6)
+                                .cornerRadius(10)
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
@@ -81,10 +80,6 @@ struct ContentView: View {
                 .frame(width: size, height: size)
             }
             .aspectRatio(1, contentMode: .fit)
-            
-            if isFinished {
-                Text("Done!").font(.title)
-            }
             
             Button("Reset") { resetGame() }
         }
@@ -102,6 +97,11 @@ struct ContentView: View {
             if nextTarget > gridSize * gridSize {
                 isFinished = true
                 timer?.invalidate()
+            }
+        } else {
+            wrongTap = number
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                wrongTap = nil
             }
         }
     }
@@ -121,6 +121,14 @@ struct ContentView: View {
             if let startTime = startTime {
                 elapsedTime = Date().timeIntervalSince(startTime)
             }
+        }
+    }
+    
+    struct ScaleButtonStyle: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .scaleEffect(configuration.isPressed ? 0.9 : 1.0)
+                .animation(.easeInOut(duration: 0.3), value: configuration.isPressed)
         }
     }
 }

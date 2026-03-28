@@ -10,6 +10,7 @@ import SwiftUI
 struct SettingView: View {
     @Binding var gridSize: Int
     @Binding var highlightTapped: Bool
+    @Binding var isDarkMode: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -30,6 +31,7 @@ struct SettingView: View {
             }
             
             Toggle("Highlight tapped numbers", isOn: $highlightTapped)
+            Toggle("Dark mode", isOn: $isDarkMode)
             
             Spacer()
         }
