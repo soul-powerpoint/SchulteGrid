@@ -22,7 +22,7 @@ struct ContentView: View {
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer? = nil
     @State private var highlightTapped = true
-    @State private var isDarkMode = false
+    @State private var appTheme: AppTheme = .system
     @State private var wrongTap: Int? = nil
     
     var columns: [GridItem] {
@@ -34,13 +34,20 @@ struct ContentView: View {
             gameView
                 .tabItem { Label("Game", systemImage: "gamecontroller") }
                 .tag(SidebarItem.game)
-                .onChange(of: isDarkMode) {
-                    NSApp.appearance = isDarkMode ? NSAppearance(named: .darkAqua) : NSAppearance(named: .aqua)
-                }
                 
-            SettingView(gridSize: $gridSize, highlightTapped: $highlightTapped, isDarkMode: $isDarkMode)
+            SettingView(gridSize: $gridSize, highlightTapped: $highlightTapped, appTheme: $appTheme)
                 .tabItem { Label("Settings", systemImage: "gearshape") }
                 .tag(SidebarItem.settings)
+        }
+        .onChange(of: appTheme) {
+            switch appTheme {
+            case .light:
+                NSApp.appearance = NSAppearance(named: .aqua)
+            case .dark:
+                NSApp.appearance = NSAppearance(named: .darkAqua)
+            case .system:
+                NSApp.appearance = nil
+            }
         }
     }
     
@@ -64,9 +71,7 @@ struct ContentView: View {
                                 .frame(width: cellSize - 2, height: cellSize - 2)
                                 .background(
                                     ZStack {
-                                        VisualEffectBlur()
-                                        VisualEffectBlur()
-                                        Color.white.opacity(0.15)
+                                        Color.primary.opacity(0.08)
                                         Color.green.opacity(number < nextTarget && highlightTapped ? 0.5 : 0)
                                         Color.red.opacity(wrongTap == number ? 0.6 : 0)
                                     }

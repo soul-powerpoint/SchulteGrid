@@ -7,10 +7,24 @@
 
 import SwiftUI
 
+enum AppTheme: String, CaseIterable {
+    case system = "System"
+    case light = "Light"
+    case dark = "Dark"
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
+}
+
 struct SettingView: View {
     @Binding var gridSize: Int
     @Binding var highlightTapped: Bool
-    @Binding var isDarkMode: Bool
+    @Binding var appTheme: AppTheme
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -18,8 +32,7 @@ struct SettingView: View {
                 .font(.largeTitle.bold())
             
             VStack(alignment: .leading, spacing: 10) {
-                Text("Grid Size")
-                    .font(.headline)
+                Text("Grid Size").font(.headline)
                 
                 Picker("Grid Size", selection: $gridSize) {
                     Text("3 x 3").tag(3)
@@ -30,8 +43,18 @@ struct SettingView: View {
                 .pickerStyle(.segmented)
             }
             
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Theme").font(.headline)
+                
+                Picker("Grid Size", selection: $appTheme) {
+                    ForEach(AppTheme.allCases, id: \.self) { theme in
+                        Text(theme.rawValue).tag(theme)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+            
             Toggle("Highlight tapped numbers", isOn: $highlightTapped)
-            Toggle("Dark mode", isOn: $isDarkMode)
             
             Spacer()
         }
